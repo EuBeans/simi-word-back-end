@@ -17,10 +17,13 @@ from pyunpack import Archive
 
 
 #check if already authenticated
+gauth = None
 if os.path.exists("mycreds.txt"):
     gauth = GoogleAuth()
     gauth.LoadCredentialsFile("mycreds.txt")
-gauth.LocalWebserverAuth() # client_secrets.json need to be in the same directory as the script
+else:
+    gauth = GoogleAuth()
+    gauth.LocalWebserverAuth()
 #store credentials
 gauth.SaveCredentialsFile("mycreds.txt")
 drive = GoogleDrive(gauth)
