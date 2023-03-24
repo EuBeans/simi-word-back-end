@@ -20,7 +20,7 @@ from googleapiclient.http import MediaIoBaseDownload
 
 
 drive = GoogleDriveService().build()
-cache = Cache(config={'CACHE_TYPE': 'SimpleCache'})
+cache = Cache(config={'CACHE_TYPE': 'filesystem','CACHE_DIR': os.getcwd()})
     
 
 app = create_app(os.getenv('SEMIWORD_ENV') or 'dev')
@@ -93,5 +93,6 @@ if __name__ == '__main__':
         model_ml = cache.get('model_ml')
         #insert model into current_app so that it can be accessed by the flask app
         app.config['MODEL'] = model_ml
+        
         print('Model loaded from cache')
     manager.run()
