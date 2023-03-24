@@ -41,8 +41,8 @@ def create_app(config_name: str) -> Flask:
 
 
     # Download file from Google Drive if it is not already in the data folder
-    if not os.path.isfile('app/main/data/' + file_name):
-        download_file(file_id, 'app/main/data/' + file_name)
+    if not os.path.isfile(file_name):
+        download_file(file_id, file_name)
 
 
 

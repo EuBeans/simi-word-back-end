@@ -38,7 +38,7 @@ mycreds.txt
 #  before PyInstaller builds the exe, so as to inject date/other infos into it.
 *.manifest
 *.spec
-
+_glove.840B.300d.word2vec.7z
 # Installer logs
 pip-log.txt
 pip-delete-this-directory.txt
