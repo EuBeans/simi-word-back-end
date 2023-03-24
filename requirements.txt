@@ -76,7 +76,6 @@ psycopg2-binary==2.8.5
 pyasn1==0.4.8
 pyasn1-modules==0.2.8
 pycparser==2.18
-pycryptodome==3.17
 PyDrive==1.3.1
 Pygments==2.14.0
 PyJWT==1.5.3
