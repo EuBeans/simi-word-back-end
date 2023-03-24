@@ -3,7 +3,7 @@ import sys
 import os
 from time import sleep
 import unittest
-
+from flask import current_app
 from flask_migrate import Migrate, MigrateCommand
 from flask_script import Manager
 from flask_caching import Cache
@@ -92,7 +92,7 @@ if __name__ == '__main__':
         #get model from cache
         model_ml = cache.get('model_ml')
         #insert model into current_app so that it can be accessed by the flask app
-        app.config['MODEL'] = model_ml
+        current_app.config['MODEL'] = model_ml
         
         print('Model loaded from cache')
     manager.run()
