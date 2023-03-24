@@ -36,7 +36,7 @@ def get_distance_between_words(similar_words, round_word, guess):
 
 def check_word_in_model(word: str):
     with current_app.app_context():
-        model = current_app.config['MODEL']
+        model = current_app.model
         if word in model.key_to_index:
             return True
         else:
@@ -47,7 +47,7 @@ def check_word_in_model(word: str):
 
 def get_word_from_theme(theme: str, level: str):
     with current_app.app_context():
-        model = current_app.config['MODEL']
+        model = current_app.model
         
         if(level == 'easy'):
             difficultyStart = 0
@@ -70,14 +70,14 @@ def guess_word(round_word: str, guess: str):
     round_word = round_word.lower()
     guess = guess.lower()
     with current_app.app_context():
-        model = current_app.config['MODEL']
+        model = current_app.model
         similar_words = get_similar_words(model, round_word)
         distance = get_distance_between_words(similar_words, round_word, guess)
         return distance
 
 def get_similar_word_list(round_word: str):
     with current_app.app_context():
-        model = current_app.config['MODEL']
+        model = current_app.model
         similar_words = model.similar_by_word(round_word, topn=LIST_LIMIT)
         json = []
         
