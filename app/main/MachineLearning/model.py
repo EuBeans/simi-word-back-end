@@ -3,7 +3,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from gensim.models import KeyedVectors
 from gensim.scripts.glove2word2vec import glove2word2vec
-from flask import g
+from flask import current_app
 LIMIT = 2036775
 LIST_LIMIT = 200
 
@@ -34,7 +34,7 @@ def get_distance_between_words(similar_words, round_word, guess):
 #transfer ('inputs/_glove.840B.300d.txt', 'inputs/_glove.840B.300d.word2vec.txt')
 
 def check_word_in_model(word: str):
-    model = g.model
+    model = current_app.config['MODEL']
     if word in model.key_to_index:
         return True
     else:
@@ -44,7 +44,7 @@ def check_word_in_model(word: str):
 #model = load_model('../data/_glove.840B.300d.word2vec.txt')
 
 def get_word_from_theme(theme: str, level: str):
-    model = g.model
+    model = current_app.config['MODEL']
     if(level == 'easy'):
         difficultyStart = 0
         difficultyEnd = 40
@@ -66,13 +66,13 @@ def guess_word(round_word: str, guess: str):
     round_word = round_word.lower()
     guess = guess.lower()
 
-    model = g.model
+    model = current_app.config['MODEL']
     similar_words = get_similar_words(model, round_word)
     distance = get_distance_between_words(similar_words, round_word, guess)
     return distance
 
 def get_similar_word_list(round_word: str):
-    model = g.model
+    model = current_app.config['MODEL']
     similar_words = model.similar_by_word(round_word, topn=LIST_LIMIT)
     json = []
     
