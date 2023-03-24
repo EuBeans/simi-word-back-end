@@ -77,5 +77,5 @@ if __name__ == '__main__':
             print('Unzipping complete')
     # Load model
     with app.app_context():
-        current_app.config['MODEL'] = load_model('app/main/data/_glove.840B.300d.word2vec.txt')  
+        app.config['MODEL'] = load_model('app/main/data/_glove.840B.300d.word2vec.txt')  
     manager.run()
