@@ -1,6 +1,7 @@
 import io
 import sys
 import os
+from time import sleep
 
 from flask import Flask, current_app
 from flask_caching import Cache
@@ -44,18 +45,20 @@ def create_app(config_name: str) -> Flask:
     if not os.path.isfile(file_name):
         download_file(file_id, file_name)
 
-
-
-    # Unzip file if it is not already in the data folder
-    if not os.path.isfile('_glove.840B.300d.word2vec.txt'):  
-        if file_name.endswith('.7z'):
-            print('Unzipping file...')
-            Archive(file_name).extractall('')
-            print('Unzipping complete')
+    # Unzip file if it is not already in the data folder 
 
     
 
 
+    if not os.path.isfile('_glove.840B.300d.word2vec.txt'):  
+        if file_name.endswith('.7z'):
+            # stop gunicorn worker from unzipping the file if  _glove.840B.300d.word2vec.7z is opened by another process
+            # tell gunicon to wait for the file to be unzipped
+            while os.path.isfile('_glove.840B.300d.word2vec.7z'):
+                sleep(1)
+            print('Unzipping file...')
+            Archive(file_name).extractall('.')
+            print('Unzipping complete')
     # Load model in cache
     if not cache.get('model_ml'):
         model_ml = load_model('_glove.840B.300d.word2vec.txt')
