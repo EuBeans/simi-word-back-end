@@ -6,7 +6,7 @@ import unittest
 
 from flask_migrate import Migrate, MigrateCommand
 from flask_script import Manager
-from flask import current_app
+from flask_caching import Cache
 from app import blueprint
 from app.main import create_app, db
 from app.main.model import user, blacklist
@@ -17,14 +17,18 @@ from pyunpack import Archive
 from app.main.service.google_drive_service import GoogleDriveService
 from googleapiclient.http import MediaIoBaseDownload
 
-drive = GoogleDriveService().build()
 
+
+drive = GoogleDriveService().build()
+cache = Cache(config={'CACHE_TYPE': 'SimpleCache'})
+    
 
 app = create_app(os.getenv('SEMIWORD_ENV') or 'dev')
 app.register_blueprint(blueprint)
+cache.init_app(app)
 
 app.app_context().push() 
-model_ml = None
+
 
 manager = Manager(app)
 
@@ -76,8 +80,18 @@ if __name__ == '__main__':
             print('Unzipping file...')
             Archive('app/main/data/' + file_name).extractall('app/main/data/')
             print('Unzipping complete')
-    # Load model
-    with app.app_context():
-        current_app.config['MODEL'] = load_model('app/main/data/_glove.840B.300d.word2vec.txt')
+    # Load model in cache
+    if not cache.get('model_ml'):
+        model_ml = load_model('app/main/data/_glove.840B.300d.word2vec.txt')
+        cache.set('model_ml', model_ml)
+        #insert model into current_app so that it can be accessed by the flask app
+        app.config['MODEL'] = model_ml
         print('Model loaded')
+    else:
+        #model is in cache
+        #get model from cache
+        model_ml = cache.get('model_ml')
+        #insert model into current_app so that it can be accessed by the flask app
+        app.config['MODEL'] = model_ml
+        print('Model loaded from cache')
     manager.run()

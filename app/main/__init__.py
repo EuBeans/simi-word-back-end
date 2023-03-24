@@ -1,5 +1,6 @@
 import sys
 from flask import Flask
+
 from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
 
@@ -14,5 +15,6 @@ def create_app(config_name: str) -> Flask:
     app.config.from_object(config_by_name[config_name])
     db.init_app(app)
     flask_bcrypt.init_app(app)
+
 
     return app

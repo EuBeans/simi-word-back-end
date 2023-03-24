@@ -12,6 +12,7 @@ basedir = os.path.abspath(os.path.dirname(__file__))
 
 class Config:
     SECRET_KEY = os.getenv('SECRET_KEY')
+    CACHE_TYPE: "SimpleCache"  # Flask-Caching related configs
 
     DEBUG = False
     # Swagger

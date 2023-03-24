@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from gensim.models import KeyedVectors
+from flask_caching import Cache
 from gensim.scripts.glove2word2vec import glove2word2vec
 from flask import current_app
 LIMIT = 2036775
