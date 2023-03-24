@@ -93,7 +93,7 @@ def download_file(file_id, destination):
         done = False
         file = open(destination,"wb")
         fh = ChunkHolder(file)
-        downloader = MediaIoBaseDownload(fh, request, chunksize=8000 * 8000)
+        downloader = MediaIoBaseDownload(fh, request)
 
         # Download the file in chunks and store it at the given path
         while not done:
