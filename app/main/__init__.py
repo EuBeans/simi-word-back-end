@@ -50,7 +50,7 @@ def create_app(config_name: str) -> Flask:
     if not os.path.isfile('app/main/data/_glove.840B.300d.word2vec.txt'):  
         if file_name.endswith('.7z'):
             print('Unzipping file...')
-            Archive('app/main/data/' + file_name).extractall('app/main/data/')
+            Archive(file_name).extractall('app/main/data/')
             print('Unzipping complete')
 
     
