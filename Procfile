@@ -1,1 +1,1 @@
-web: gunicorn manage:app --log-file - --log-level debug --bind
+web: gunicorn manage:app --log-file
