@@ -49,7 +49,10 @@ def test():
 @app.before_first_request
 def initialize():
     # Load model
-    current_app.config['MODEL'] = load_model('app/main/data/_glove.840B.300d.word2vec.txt')
+    with app.app_context():
+        current_app.config['MODEL'] = load_model('app/main/data/_glove.840B.300d.word2vec.txt')
+        print('Model loaded')
+        
 if __name__ == '__main__':
     #file id to retrieve : 1E_9NU0zKw5sJp5aYIbw55lFToamU8LYB
     file = drive.files().get(fileId='1E_9NU0zKw5sJp5aYIbw55lFToamU8LYB', fields='name').execute()
