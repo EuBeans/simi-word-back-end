@@ -75,6 +75,4 @@ if __name__ == '__main__':
             print('Unzipping file...')
             Archive('app/main/data/' + file_name).extractall('app/main/data/')
             print('Unzipping complete')
-    with app.app_context():
-        current_app.model = load_model('app/main/data/_glove.840B.300d.word2vec.txt')
     manager.run()
