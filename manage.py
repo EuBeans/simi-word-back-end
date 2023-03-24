@@ -1,5 +1,7 @@
+import io
 import sys
 import os
+from time import sleep
 import unittest
 
 from flask_migrate import Migrate, MigrateCommand
@@ -10,23 +12,13 @@ from app.main import create_app, db
 from app.main.model import user, blacklist
 from app.main.MachineLearning.model import load_model
 
-from pydrive.auth import GoogleAuth
-from pydrive.drive import GoogleDrive
 from pyunpack import Archive
 
+from app.main.service.google_drive_service import GoogleDriveService
+from googleapiclient.http import MediaIoBaseDownload
 
+drive = GoogleDriveService().build()
 
-#check if already authenticated
-gauth = None
-if os.path.exists("mycreds.txt"):
-    gauth = GoogleAuth()
-    gauth.LoadCredentialsFile("mycreds.txt")
-else:
-    gauth = GoogleAuth()
-    gauth.LocalWebserverAuth()
-#store credentials
-gauth.SaveCredentialsFile("mycreds.txt")
-drive = GoogleDrive(gauth)
 
 app = create_app(os.getenv('SEMIWORD_ENV') or 'dev')
 app.register_blueprint(blueprint)
@@ -55,27 +47,34 @@ def test():
     return 1
 
 if __name__ == '__main__':
-    file_list = drive.ListFile({'q': "'1RxUNxOG2amm36p4IiuHQEXfDSMbhfk6i' in parents and trashed=false"}).GetList()
-    for file in file_list:
-        file_id = file['id']
-        file_name = file['title']
-        print( file['title'], file['id'])
-        print('title: %s, mimeType: %s' % (file['title'], file['mimeType']))
+    #file id to retrieve : 1E_9NU0zKw5sJp5aYIbw55lFToamU8LYB
+    file = drive.files().get(fileId='1E_9NU0zKw5sJp5aYIbw55lFToamU8LYB', fields='name').execute()
+    file_name = file.get('name')
+    file_id = '1E_9NU0zKw5sJp5aYIbw55lFToamU8LYB'
 
-        # Download file from Google Drive if it is not already in the data folder
-        if not os.path.isfile('app/main/data/' + file_name):
-            print('Downloading file from Google Drive')
-            downloaded = drive.CreateFile({'id': file_id})
-            #show loading bar
-            print('Downloading content "{}"'.format(downloaded))
-            downloaded.GetContentFile('app/main/data/' + file_name)    
-        #unzip file
+    # Download file from Google Drive if it is not already in the data folder
+    if not os.path.isfile('app/main/data/' + file_name):
+        print('Downloading file from Google Drive')
+        drive.files().get_media(fileId=file_id).execute()
+        #show loading bar
+        print('Downloading content "{}"'.format(file_name))
+        #download file
+        request = drive.files().get_media(fileId=file_id)
+        fh = io.FileIO('app/main/data/' + file_name, 'wb')
+        downloader = MediaIoBaseDownload(fh, request)
+        done = False
+        while done is False:
+            status, done = downloader.next_chunk()
+            print("Download %d%%." % int(status.progress() * 100))
+        print('Download complete')
+        #let go of the file handle
+        fh.close()
+    # Unzip file if it is not already in the data folder
+    if not os.path.isfile('app/main/data/_glove.840B.300d.word2vec.txt'):  
         if file_name.endswith('.7z'):
             print('Unzipping file...')
             Archive('app/main/data/' + file_name).extractall('app/main/data/')
-            #the code above is returning NotImplementedError: That compression method is not supported
-            #so I am using the following code instead          
-    
+            print('Unzipping complete')
     with app.app_context():
         current_app.model = load_model('app/main/data/_glove.840B.300d.word2vec.txt')
     manager.run()
