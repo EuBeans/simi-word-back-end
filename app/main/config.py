@@ -1,5 +1,7 @@
 import os
 
+from app.main.MachineLearning.model import load_model
+
 # uncomment the line below for postgres database url from environment variable
 
 #
@@ -36,6 +38,7 @@ class TestingConfig(Config):
 class ProductionConfig(Config):
     DEBUG = False
     # uncomment the line below to use postgres
+    model = load_model('main/data/_glove.840B.300d.word2vec.txt')
     SQLALCHEMY_DATABASE_URI = postgres_local_base
 
 
