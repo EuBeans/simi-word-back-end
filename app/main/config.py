@@ -30,6 +30,7 @@ class DevelopmentConfig(Config):
 class TestingConfig(Config):
     DEBUG = True
     TESTING = True
+
     #SQLALCHEMY_DATABASE_URI = 'sqlite:///' + os.path.join(basedir, 'flask_boilerplate_test.db')
     PRESERVE_CONTEXT_ON_EXCEPTION = False
     SQLALCHEMY_TRACK_MODIFICATIONS = False
@@ -38,7 +39,6 @@ class TestingConfig(Config):
 class ProductionConfig(Config):
     DEBUG = False
     # uncomment the line below to use postgres
-    model = load_model('app/main/data/_glove.840B.300d.word2vec.txt')
     SQLALCHEMY_DATABASE_URI = postgres_local_base
 
 
