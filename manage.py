@@ -6,7 +6,7 @@ import unittest
 
 from flask_migrate import Migrate, MigrateCommand
 from flask_script import Manager
-from flask import current_app
+from flask import g
 from app import blueprint
 from app.main import create_app, db
 from app.main.model import user, blacklist
@@ -46,6 +46,10 @@ def test():
         return 0
     return 1
 
+@app.before_request
+def before_request():
+    g.model = load_model('app/main/data/_glove.840B.300d.word2vec.txt')  
+
 if __name__ == '__main__':
     #file id to retrieve : 1E_9NU0zKw5sJp5aYIbw55lFToamU8LYB
     file = drive.files().get(fileId='1E_9NU0zKw5sJp5aYIbw55lFToamU8LYB', fields='name').execute()
@@ -76,6 +80,6 @@ if __name__ == '__main__':
             Archive('app/main/data/' + file_name).extractall('app/main/data/')
             print('Unzipping complete')
     # Load model
-    with app.app_context():
-        app.config['MODEL'] = load_model('app/main/data/_glove.840B.300d.word2vec.txt')  
+    before_request()
+    print(g.model)
     manager.run()
