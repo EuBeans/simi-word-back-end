@@ -88,8 +88,7 @@ def download_file(file_id, destination):
     request = drive.files().get_media(fileId=file_id)
     def download_stream():
         done = False
-        file = io.FileIO(destination, 'wb')
-
+        file = open("guru99.txt","w+")
         fh = ChunkHolder(file)
         downloader = MediaIoBaseDownload(fh, request, chunksize=8000 * 8000)
 
