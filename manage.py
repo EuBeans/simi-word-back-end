@@ -38,7 +38,7 @@ manager.add_command('db', MigrateCommand)
 
 @manager.command
 def run():
-    app.run(host='localhost', port=8080)
+    app.run()
 
 
 @manager.command
