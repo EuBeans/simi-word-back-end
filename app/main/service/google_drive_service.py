@@ -29,5 +29,6 @@ class GoogleDriveService:
     def build(self):
         creds =ServiceAccountCredentials.from_json_keyfile_dict(self._creds)
         service = build('drive', 'v3', credentials=creds)
+        print('Google Drive service built successfully')
 
         return service

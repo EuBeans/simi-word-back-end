@@ -3,29 +3,17 @@ import sys
 import os
 from time import sleep
 import unittest
-from flask import current_app, session
 from flask_migrate import Migrate, MigrateCommand
 from flask_script import Manager
 from flask_caching import Cache
 from app import blueprint
 from app.main import create_app, db
 from app.main.model import user, blacklist
-from app.main.MachineLearning.model import load_model
 
-from pyunpack import Archive
-
-from app.main.service.google_drive_service import GoogleDriveService
-from googleapiclient.http import MediaIoBaseDownload
-
-
-
-drive = GoogleDriveService().build()
-cache = Cache(config={'CACHE_TYPE': 'filesystem','CACHE_DIR': os.getcwd()})
     
 
 app = create_app(os.getenv('SEMIWORD_ENV') or 'dev')
 app.register_blueprint(blueprint)
-cache.init_app(app)
 
 app.app_context().push() 
 
@@ -52,46 +40,4 @@ def test():
 
 
 if __name__ == '__main__':
-    #file id to retrieve : 1E_9NU0zKw5sJp5aYIbw55lFToamU8LYB
-    file = drive.files().get(fileId='1E_9NU0zKw5sJp5aYIbw55lFToamU8LYB', fields='name').execute()
-    file_name = file.get('name')
-    file_id = '1E_9NU0zKw5sJp5aYIbw55lFToamU8LYB'
-
-    # Download file from Google Drive if it is not already in the data folder
-    if not os.path.isfile('app/main/data/' + file_name):
-        print('Downloading file from Google Drive')
-        drive.files().get_media(fileId=file_id).execute()
-        #show loading bar
-        print('Downloading content "{}"'.format(file_name))
-        #download file
-        request = drive.files().get_media(fileId=file_id)
-        fh = io.FileIO('app/main/data/' + file_name, 'wb')
-        downloader = MediaIoBaseDownload(fh, request)
-        done = False
-        while done is False:
-            status, done = downloader.next_chunk()
-            print("Download %d%%." % int(status.progress() * 100))
-        print('Download complete')
-        #let go of the file handle
-        fh.close()
-    # Unzip file if it is not already in the data folder
-    if not os.path.isfile('app/main/data/_glove.840B.300d.word2vec.txt'):  
-        if file_name.endswith('.7z'):
-            print('Unzipping file...')
-            Archive('app/main/data/' + file_name).extractall('app/main/data/')
-            print('Unzipping complete')
-    # Load model in cache
-    if not cache.get('model_ml'):
-        model_ml = load_model('app/main/data/_glove.840B.300d.word2vec.txt')
-        cache.set('model_ml', model_ml)
-        #insert model into current_app so that it can be accessed by the flask app
-        app.model = model_ml
-        print('Model loaded')
-    else:
-        #model is in cache
-        #get model from cache
-        model_ml = cache.get('model_ml')
-        #insert model into current_app so that it can be accessed by the flask app
-        current_app.model = model_ml
-        print('Model loaded from cache')
     manager.run()
