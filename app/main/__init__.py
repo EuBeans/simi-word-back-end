@@ -47,10 +47,10 @@ def create_app(config_name: str) -> Flask:
 
 
     # Unzip file if it is not already in the data folder
-    if not os.path.isfile('app/main/data/_glove.840B.300d.word2vec.txt'):  
+    if not os.path.isfile('_glove.840B.300d.word2vec.txt'):  
         if file_name.endswith('.7z'):
             print('Unzipping file...')
-            Archive(file_name).extractall('app/main/data/')
+            Archive(file_name).extractall('')
             print('Unzipping complete')
 
     
@@ -58,7 +58,7 @@ def create_app(config_name: str) -> Flask:
 
     # Load model in cache
     if not cache.get('model_ml'):
-        model_ml = load_model('app/main/data/_glove.840B.300d.word2vec.txt')
+        model_ml = load_model('_glove.840B.300d.word2vec.txt')
         cache.set('model_ml', model_ml)
         with app.app_context():
             current_app.config["MODEL"] = model_ml
