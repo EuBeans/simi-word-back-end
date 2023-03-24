@@ -3,14 +3,14 @@ import sys
 import os
 from time import sleep
 import unittest
+from flask import current_app, session
 from flask_migrate import Migrate, MigrateCommand
 from flask_script import Manager
-from flask_caching import Cache
+
 from app import blueprint
 from app.main import create_app, db
-from app.main.model import user, blacklist
+from app.main.MachineLearning.model import load_model
 
-    
 
 app = create_app(os.getenv('SEMIWORD_ENV') or 'dev')
 app.register_blueprint(blueprint)
@@ -40,4 +40,5 @@ def test():
 
 
 if __name__ == '__main__':
+
     manager.run()

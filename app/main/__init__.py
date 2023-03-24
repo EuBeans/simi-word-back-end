@@ -33,51 +33,71 @@ def create_app(config_name: str) -> Flask:
     cache.init_app(app)
 
 
-
     #file id to retrieve : 1E_9NU0zKw5sJp5aYIbw55lFToamU8LYB
     file = drive.files().get(fileId='1E_9NU0zKw5sJp5aYIbw55lFToamU8LYB', fields='name').execute()
     file_name = file.get('name')
     file_id = '1E_9NU0zKw5sJp5aYIbw55lFToamU8LYB'
+    print(file_name, file_id)
+
 
     # Download file from Google Drive if it is not already in the data folder
     if not os.path.isfile('app/main/data/' + file_name):
-        print('Downloading file from Google Drive')
-        drive.files().get_media(fileId=file_id).execute()
-        #show loading bar
-        print('Downloading content "{}"'.format(file_name))
-        #download file
-        request = drive.files().get_media(fileId=file_id)
-        fh = io.FileIO('app/main/data/' + file_name, 'wb')
-        downloader = MediaIoBaseDownload(fh, request)
-        done = False
-        while done is False:
-            status, done = downloader.next_chunk()
-            print("Download %d%%." % int(status.progress() * 100))
-        print('Download complete')
-        #let go of the file handle
-        fh.close()
+        download_file(file_id, 'app/main/data/' + file_name)
+
+
+
     # Unzip file if it is not already in the data folder
     if not os.path.isfile('app/main/data/_glove.840B.300d.word2vec.txt'):  
         if file_name.endswith('.7z'):
             print('Unzipping file...')
             Archive('app/main/data/' + file_name).extractall('app/main/data/')
             print('Unzipping complete')
+
+    
+
+
     # Load model in cache
     if not cache.get('model_ml'):
         model_ml = load_model('app/main/data/_glove.840B.300d.word2vec.txt')
         cache.set('model_ml', model_ml)
-        #insert model into current_app so that it can be accessed by the flask app
         with app.app_context():
             current_app.config["MODEL"] = model_ml
             print('Model loaded')
     else:
-        #model is in cache
-        #get model from cache
-        
         model_ml = cache.get('model_ml')
-        #insert model into current_app so that it can be accessed by the flask app
         with app.app_context():
             current_app.config["MODEL"] = model_ml
             print('Model loaded from cache')
 
     return app
+
+class ChunkHolder(object):
+
+    def __init__(self,file):
+        self.chunk = None
+        self.file = file
+
+    def write(self, chunk):
+        """Save current chunk"""
+        self.chunk = chunk
+        #write to file
+        self.file.write(chunk)
+
+def download_file(file_id, destination):
+    print('Downloading file from Google Drive')
+    request = drive.files().get_media(fileId=file_id)
+    def download_stream():
+        done = False
+        file = io.FileIO(destination, 'wb')
+
+        fh = ChunkHolder(file)
+        downloader = MediaIoBaseDownload(fh, request, chunksize=8000 * 8000)
+
+        # Download the file in chunks and store it at the given path
+        while not done:
+            status, done = downloader.next_chunk()
+            print("Download %d%%." % int(status.progress() * 100))
+
+        file.close()
+
+    return download_stream()
