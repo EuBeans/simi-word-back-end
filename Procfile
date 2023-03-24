@@ -1,1 +1,1 @@
-web: gunicorn manage:app --preload
+web: gunicorn manage:app --log-file - --log-level debug --bind
