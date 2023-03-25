@@ -23,7 +23,7 @@ class ChunkHolder(object):
         self.file.write(chunk)
 
 def download_file(file_id, destination):
-
+    print('Downloading file from Google Drive')
     logging.info('Downloading file from Google Drive')
     request = drive.files().get_media(fileId=file_id)
     def download_stream():
@@ -58,6 +58,7 @@ class modelDownloaderWorker():
   
 
     def run(self):
+        print('Starting model downloader worker')
         logging.info('Starting model downloader worker')
         #file id to retrieve : 1E_9NU0zKw5sJp5aYIbw55lFToamU8LYB
         file = drive.files().get(fileId='1E_9NU0zKw5sJp5aYIbw55lFToamU8LYB', fields='name').execute()
@@ -83,6 +84,7 @@ class modelDownloaderWorker():
                         break
                     except:
                         print('file is being used by another process')
+                        logging.info('file is being used by another process')
                         sleep(1)
                 print('Unzipping file...')
                 logging.info('Unzipping file...')
