@@ -1,12 +1,15 @@
+from ctypes import sizeof
 import logging
 import os
 import threading
 from time import sleep
 from pyunpack import Archive
+from tqdm import tqdm
 from app.main import  current_app
 from app.main.MachineLearning.model import load_model
 from app.main.service.google_drive_service import GoogleDriveService
 from googleapiclient.http import MediaIoBaseDownload
+from alive_progress import alive_bar
 
 drive = GoogleDriveService().build()
 
@@ -32,12 +35,23 @@ def download_file(file_id, destination):
         fh = ChunkHolder(file)
         downloader = MediaIoBaseDownload(fh, request, chunksize=8000 * 8000)
 
-        # Download the file in chunks and store it at the given path
-        while not done:
-            status, done = downloader.next_chunk()
-            print("Download %d%%." % int(status.progress() * 100))
-            logging.info("Download %d%%.", int(status.progress() * 100))
 
+        # get expected file size
+        file_size = drive.files().get(fileId=file_id, fields='size').execute().get('size')
+        print('File size: %s', file_size)
+
+
+        #get number of iterations
+        iterations = int(int(file_size)/8000/8000)
+        print('Iterations: %s', iterations)
+        
+        with alive_bar(iterations) as bar:
+            while done is False:
+                status, done = downloader.next_chunk()
+                bar()
+        # Download the file in chunks and store it at the given path
+        # use alive-progress to show progress in percentage
+        
         file.close()
 
     return download_stream()
@@ -66,7 +80,7 @@ class modelDownloaderWorker():
         file_id = '1E_9NU0zKw5sJp5aYIbw55lFToamU8LYB'
         logging.info('File name: %s', file_name)
 
-
+        new_file_name = '_glove.840B.300d.word2vec.txt'
         # Download file from Google Drive if it is not already in the data folder
         if not os.path.isfile(file_name):
             #thread the download
@@ -83,29 +97,36 @@ class modelDownloaderWorker():
                         os.rename(file_name, file_name)
                         break
                     except:
-                        print('file is being used by another process')
-                        logging.info('file is being used by another process')
+                       
                         sleep(1)
-                print('Unzipping file...')
-                logging.info('Unzipping file...')
-                #pyunpack.PatoolError: patool can not unpack file
-                # set executable program to extract 7z files
+
+                #unzip file
+                """
                 import py7zr
                 with py7zr.SevenZipFile(file_name, mode='r') as z:
                         z.extractall()
-                #Archive(file_name).extractall('.')
-                print('File unzipped')
-                logging.info('File unzipped')
-
-        new_file_name = '_glove.840B.300d.word2vec.txt'
-        while True:
-            try:
-                os.rename(new_file_name, new_file_name)
-                break
-            except:
-                print('file is being used by another process')
-                logging.info('file is being used by another process')
-                sleep(1)
+                
+                print('Unzipping file...')
+                logging.info('Unzipping file...')
+                """
+                
+                # Open the .7z file using py7zr
+                import py7zr
+                with py7zr.SevenZipFile(file_name, mode='r') as z:
+                        print('unzipping file...')
+                        z.extractall()
+                        # indefinite alive bar
+     
+        with alive_bar() as bar:
+            
+            while True:
+                try:
+                    os.rename(new_file_name, new_file_name)
+                    break
+                except:
+                    bar()
+                    sleep(1)
+        
         with self.app.app_context():
                 model_ml = load_model(new_file_name)
                 current_app.config["MODEL"] = model_ml
