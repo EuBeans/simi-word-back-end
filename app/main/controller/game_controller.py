@@ -1,12 +1,18 @@
-from flask import request, current_app
+import threading
+from time import sleep
+from flask import request, current_app, Flask
 from flask_restx import Resource
 from app.main.MachineLearning.model import load_model
-from app.main.util.decorator import token_required
+from app.main.util.decorator import token_required, socket_token_required
 from app.main.workers import modelDownloaderWorker
 from ..util.dto import GameDto
 from ..service.game_service import save_new_game, get_all_games, get_a_game, end_game
 from ..service.auth_helper import Auth
 from typing import Dict, Tuple
+from ..socketio import socketio
+from flask_socketio import emit, join_room, leave_room
+
+thread = None
 
 api = GameDto.api
 _game = GameDto.game
@@ -87,3 +93,21 @@ class UpdateModel(Resource):
                     'status': 'success',
                     'message': 'Model has been updated successfully!'
                 }
+
+        
+@socketio.on('connect', namespace='/game')
+@socket_token_required
+def test_connect(auth_token):
+    #only connect if the user is logged in
+    print('Client connected to socketio')
+    print(auth_token)
+    #user, status = Auth.get_logged_in_user_socket(auth_token)
+
+    emit('my response', {'data': 'Connected'})
+
+
+    print('Client connected to socketio')
+
+@socketio.on('disconnect')
+def test_disconnect():
+    print('Client disconnected')

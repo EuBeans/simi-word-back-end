@@ -1,3 +1,5 @@
+import random
+import string
 import uuid
 import datetime
 
@@ -15,6 +17,14 @@ def save_new_game(user_id:str, data: Dict[str, str]) -> Tuple[Dict[str, str], in
         game_level = GameLevel(data['game_level'])
         game_status = GameStatus.in_progress
         max_round_number = data['max_round_number']
+        multiplayer_code = None
+        #if game_mode is multiplayer, multiplayer_code must be set
+        if game_mode == GameMode.multiplayer:
+            #generate a random code with letters and numbers and 6 characters
+            multiplayer_code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
+
+            
+        
 
         new_game = Game(
             game_id= str(uuid.uuid4()),
@@ -26,7 +36,8 @@ def save_new_game(user_id:str, data: Dict[str, str]) -> Tuple[Dict[str, str], in
             start_time=datetime.datetime.utcnow(),
             created_at=datetime.datetime.utcnow(),
             game_status = game_status,
-            max_round_number = max_round_number
+            max_round_number = max_round_number,
+            multiplayer_code = multiplayer_code
         )
 
         save_changes(new_game)

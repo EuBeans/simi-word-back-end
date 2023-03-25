@@ -61,9 +61,15 @@ class Game(db.Model):
     created_at = db.Column(db.DateTime, nullable=True)
     game_status = db.Column(Enum(GameStatus,create_constraint=True), nullable=False) 
     max_round_number = db.Column(db.Integer, nullable=False)
+    multiplayer_code = db.Column(db.String(100), nullable=True)
+
+    
+
+
 
    #add constraints to the database
     __table_args__ = (
+        db.CheckConstraint('game_mode != "multiplayer" OR multiplayer_code IS NOT NULL', name='multiplayer_code_not_null'),
         db.CheckConstraint('score >= 0', name='score_positive'),
         db.CheckConstraint('start_time < end_time', name='start_time_before_end_time'),
         db.CheckConstraint('max_round_number <= 5', name='max_round_number_less_than_5'),
@@ -85,7 +91,8 @@ class Game(db.Model):
             'end_time': str(self.end_time),
             'created_at': str(self.created_at),
             'game_status': self.game_status.value,
-            'max_round_number': self.max_round_number
+            'max_round_number': self.max_round_number,
+            'multiplayer_code': self.multiplayer_code
         }
 
 

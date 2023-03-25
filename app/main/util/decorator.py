@@ -42,3 +42,17 @@ def admin_token_required(f: Callable) -> Callable:
         return f(*args, **kwargs)
 
     return decorated
+
+def socket_token_required(f) -> Callable:
+    @wraps(f)
+    def decorated(*args, **kwargs):
+
+        data, status = Auth.get_logged_in_user_socket(request.args.get('token'))
+        token = data.get('data')
+
+        if not token:
+            return data, status
+
+        return f(*args, **kwargs)
+    
+    return decorated

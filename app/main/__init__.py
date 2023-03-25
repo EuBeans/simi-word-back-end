@@ -33,7 +33,7 @@ def create_app(config_name: str) -> Flask:
     with app.app_context():
         app.config['MODEL'] = None
         cur_app = current_app._get_current_object()
-        modelDownloaderWorker(cur_app)
+        #modelDownloaderWorker(cur_app)
    
     return app
 

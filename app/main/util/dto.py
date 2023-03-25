@@ -23,6 +23,7 @@ class GameDto:
         'game_level': fields.String(required=True, description='game game level'),
         'theme': fields.String(required=True, description='game theme'),
         'max_round_number': fields.Integer(required=True, description='game max round number'),
+        'multiplayer_code': fields.String(required=True, description='game multiplayer code'),
     })
     game_create= api.model('game_create', {
         'game_mode': fields.String(required=True, description='game game mode'),
