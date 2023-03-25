@@ -1,4 +1,6 @@
+about-time==4.2.1
 alembic==0.9.6
+alive-progress==3.1.0
 amqp==5.1.1
 aniso8601==9.0.1
 APScheduler==3.10.1
@@ -49,6 +51,7 @@ google-auth-httplib2==0.1.0
 google-auth-oauthlib==0.4.1
 google-drive==0.5.0
 googleapis-common-protos==1.59.0
+grapheme==0.6.0
 greenlet==2.0.2
 gunicorn==19.7.1
 httplib2==0.22.0
