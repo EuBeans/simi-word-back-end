@@ -42,6 +42,7 @@ class UpdateModel(Resource):
 
         cur_app = current_app._get_current_object()
         modelDownloaderWorker(cur_app)
+        #TODO Load model and then return success... diferent thread, thread will send a response to the client 
         
         return  {
                     'status': 'success',
