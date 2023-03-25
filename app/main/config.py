@@ -42,11 +42,21 @@ class ProductionConfig(Config):
     # uncomment the line below to use postgres
     SQLALCHEMY_DATABASE_URI = postgres_local_base
 
+class Celery:
+    broker_url = 'amqp://guest:guest@localhost:5672//'
+    result_backend = 'rpc://'
+    task_serializer = 'json'
+    result_serializer = 'json'
+    accept_content = ['json']
+    timezone = "North America/New York"
+    enable_utc = True
+
 
 config_by_name = dict(
     dev=DevelopmentConfig,
     test=TestingConfig,
-    prod=ProductionConfig
+    prod=ProductionConfig,
+    CELERY=Celery
 )
 
 key = Config.SECRET_KEY
