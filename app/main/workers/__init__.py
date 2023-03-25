@@ -95,9 +95,6 @@ class modelDownloaderWorker():
                 print('File unzipped')
                 logging.info('File unzipped')
 
-                #close file
-                os.close(file_name)
-
         new_file_name = '_glove.840B.300d.word2vec.txt'
         while True:
             try:
