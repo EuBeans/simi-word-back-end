@@ -66,9 +66,9 @@ class modelDownloaderWorker():
         self.app = app
         #self.cache = cache
         #threads 
-        thread = threading.Thread(target=self.run, args=())
-        thread.daemon = True
-        thread.start()
+        self.thread = threading.Thread(target=self.run, args=())
+        self.thread.daemon = True
+        self.thread.start()
   
 
     def run(self):
@@ -132,3 +132,8 @@ class modelDownloaderWorker():
                 current_app.config["MODEL"] = model_ml
                 print('Model loaded')
                 logging.info('Model loaded')
+        #return current thread 
+    
+
+    def join(self):
+        self.thread.join()

@@ -1,7 +1,7 @@
-from flask import request,current_app
+from flask import request
 from flask_restx import Resource
+from app.main.MachineLearning.model import load_model
 from app.main.service.auth_helper import Auth
-from app.main.workers import modelDownloaderWorker
 from ..util.dto import AuthDto
 from typing import Dict, Tuple
 
@@ -33,18 +33,3 @@ class LogoutAPI(Resource):
         auth_header = request.headers.get('Authorization')
         return Auth.logout_user(data=auth_header)
 
-@api.route('/update_model')
-class UpdateModel(Resource):
-
-
-    @api.doc('update model')
-    def post(self) -> Tuple[Dict[str, str], int]:
-
-        cur_app = current_app._get_current_object()
-        modelDownloaderWorker(cur_app)
-        #TODO Load model and then return success... diferent thread, thread will send a response to the client 
-        
-        return  {
-                    'status': 'success',
-                    'message': 'Successfully updated model.'
-                }

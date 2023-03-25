@@ -1,5 +1,6 @@
 from flask import request
 from flask_restx import Resource
+from app.main.MachineLearning.model import load_model
 from app.main.util.decorator import token_required
 from ..util.dto import GameRoundDto
 from ..service.game_round_service import get_a_game_round, save_new_game_round, get_all_game_rounds, end_game_round, get_all_similar_words_for_game_round
@@ -76,5 +77,4 @@ class GameRound(Resource):
             api.abort(404)
         else:
             return words
-        
         

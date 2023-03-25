@@ -1,8 +1,10 @@
-from flask import request
+from flask import request, current_app
 from flask_restx import Resource
+from app.main.MachineLearning.model import load_model
 from app.main.util.decorator import token_required
+from app.main.workers import modelDownloaderWorker
 from ..util.dto import GameDto
-from ..service.game_service import save_new_game, get_all_games, get_a_game
+from ..service.game_service import save_new_game, get_all_games, get_a_game, end_game
 from ..service.auth_helper import Auth
 from typing import Dict, Tuple
 
@@ -49,7 +51,7 @@ class GameList(Resource):
         if not id:
             return 
         data = request.json
-        return update_game(data=data)
+        return end_game(data=data)
 
 @api.route('/<game_id>')
 @api.param('game_id', 'The Game identifier')
@@ -68,3 +70,20 @@ class Game(Resource):
 
 
 
+@api.route('/update_model')
+class UpdateModel(Resource):
+
+    @api.doc('update model')
+    def post(self) -> Tuple[Dict[str, str], int]:
+
+        cur_app = current_app._get_current_object()
+        thread = modelDownloaderWorker(cur_app)
+        #TODO Load model and then return success... diferent thread, thread will send a response to the client
+
+        #wait for the model to thread to finish
+        thread.join()
+
+        return  {
+                    'status': 'success',
+                    'message': 'Model has been updated successfully!'
+                }
