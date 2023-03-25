@@ -93,7 +93,12 @@ class modelDownloaderWorker():
                         sleep(1)
 
                 logging.info('Unzipping file...')
-                Archive(file_name).extractall('.')
+                #pyunpack.PatoolError: patool can not unpack file
+                # set executable program to extract 7z files
+                import py7zr
+                with py7zr.SevenZipFile(file_name, mode='r') as z:
+                        z.extractall()
+                #Archive(file_name).extractall('.')
                 logging.info('File unzipped')
 
         new_file_name = '_glove.840B.300d.word2vec.txt'
