@@ -31,8 +31,8 @@ def create_app(config_name: str) -> Flask:
     flask_bcrypt.init_app(app)
     cache.init_app(app)
     # schedule model download run only once
-    
-    modelDownloaderWorker(app, cache)
+    cur_app = current_app._get_current_object()
+    modelDownloaderWorker(cur_app, cache)
    
     return app
 
