@@ -45,7 +45,7 @@ def download_file(file_id, destination):
         iterations = int(int(file_size)/8000/8000)
         print('Iterations: %s', iterations)
         
-        with alive_bar(iterations) as bar:
+        with alive_bar(iterations, force_tty=True,title='Downloading File',spinner='wait') as bar:
             while done is False:
                 status, done = downloader.next_chunk()
                 bar()
