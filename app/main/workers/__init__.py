@@ -3,16 +3,12 @@ import os
 import threading
 from time import sleep
 from pyunpack import Archive
-import psutil
 from app.main import  current_app
 from app.main.MachineLearning.model import load_model
 from app.main.service.google_drive_service import GoogleDriveService
 from googleapiclient.http import MediaIoBaseDownload
-from apscheduler.schedulers.blocking import BlockingScheduler
 
 drive = GoogleDriveService().build()
-
-
 
     
 class ChunkHolder(object):
@@ -27,9 +23,6 @@ class ChunkHolder(object):
         self.file.write(chunk)
 
 def download_file(file_id, destination):
-
-    
-    
 
     logging.info('Downloading file from Google Drive')
     request = drive.files().get_media(fileId=file_id)
@@ -89,9 +82,9 @@ class modelDownloaderWorker():
                         os.rename(file_name, file_name)
                         break
                     except:
-                        logging.info('file is being used by another process')
+                        print('file is being used by another process')
                         sleep(1)
-
+                print('Unzipping file...')
                 logging.info('Unzipping file...')
                 #pyunpack.PatoolError: patool can not unpack file
                 # set executable program to extract 7z files
@@ -99,7 +92,11 @@ class modelDownloaderWorker():
                 with py7zr.SevenZipFile(file_name, mode='r') as z:
                         z.extractall()
                 #Archive(file_name).extractall('.')
+                print('File unzipped')
                 logging.info('File unzipped')
+
+                #close file
+                os.close(file_name)
 
         new_file_name = '_glove.840B.300d.word2vec.txt'
         while True:
@@ -107,6 +104,7 @@ class modelDownloaderWorker():
                 os.rename(new_file_name, new_file_name)
                 break
             except:
+                print('file is being used by another process')
                 logging.info('file is being used by another process')
                 sleep(1)
         with self.app.app_context():
@@ -114,21 +112,3 @@ class modelDownloaderWorker():
                 current_app.config["MODEL"] = model_ml
                 print('Model loaded')
                 logging.info('Model loaded')
-
-        """
-        # Load model in cache
-        if not self.cache.get('model_ml'):
-            model_ml = load_model(new_file_name)
-            self.cache.set('model_ml', model_ml)
-            with self.app.app_context():
-                current_app.config["MODEL"] = model_ml
-                print('Model loaded')
-                logging.info('Model loaded')
-        else:
-            model_ml = self.cache.get('model_ml')
-            with self.app.app_context():
-                current_app.config["MODEL"] = model_ml
-                print('Model loaded from cache')
-                logging.info('Model loaded from cache')
-        """
-
