@@ -55,9 +55,9 @@ def download_file(file_id, destination):
 class modelDownloaderWorker():
 
 
-    def __init__(self, app, cache):
+    def __init__(self, app):
         self.app = app
-        self.cache = cache
+        #self.cache = cache
         #threads 
         thread = threading.Thread(target=self.run, args=())
         thread.daemon = True
@@ -89,7 +89,7 @@ class modelDownloaderWorker():
                         os.rename(file_name, file_name)
                         break
                     except:
-                        logging.info('Waiting for file to be unzipped')
+                        logging.info('file is being used by another process')
                         sleep(1)
 
                 logging.info('Unzipping file...')
@@ -102,9 +102,15 @@ class modelDownloaderWorker():
                 os.rename(new_file_name, new_file_name)
                 break
             except:
-                print('waiting for file to be unzipped...')
-                logging.info('Waiting for file to be unzipped')
+                logging.info('file is being used by another process')
                 sleep(1)
+        with self.app.app_context():
+                model_ml = load_model(new_file_name)
+                current_app.config["MODEL"] = model_ml
+                print('Model loaded')
+                logging.info('Model loaded')
+
+        """
         # Load model in cache
         if not self.cache.get('model_ml'):
             model_ml = load_model(new_file_name)
@@ -119,5 +125,5 @@ class modelDownloaderWorker():
                 current_app.config["MODEL"] = model_ml
                 print('Model loaded from cache')
                 logging.info('Model loaded from cache')
-
+        """
 

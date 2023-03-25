@@ -32,9 +32,9 @@ def create_app(config_name: str) -> Flask:
     cache.init_app(app)
     # schedule model download run only once
     with app.app_context():
-        
+        app.config['MODEL'] = None
         cur_app = current_app._get_current_object()
-        modelDownloaderWorker(cur_app, cache)
+        modelDownloaderWorker(cur_app)
    
     return app
 

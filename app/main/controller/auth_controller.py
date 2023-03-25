@@ -1,6 +1,7 @@
-from flask import request
+from flask import request,current_app
 from flask_restx import Resource
 from app.main.service.auth_helper import Auth
+from app.main.workers import modelDownloaderWorker
 from ..util.dto import AuthDto
 from typing import Dict, Tuple
 
@@ -31,3 +32,18 @@ class LogoutAPI(Resource):
         # get auth token
         auth_header = request.headers.get('Authorization')
         return Auth.logout_user(data=auth_header)
+
+@api.route('/update_model')
+class UpdateModel(Resource):
+
+
+    @api.doc('update model')
+    def post(self) -> Tuple[Dict[str, str], int]:
+
+        cur_app = current_app._get_current_object()
+        modelDownloaderWorker(cur_app)
+        
+        return  {
+                    'status': 'success',
+                    'message': 'Successfully updated model.'
+                }
