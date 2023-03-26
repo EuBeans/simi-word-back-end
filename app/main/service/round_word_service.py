@@ -36,7 +36,7 @@ def save_new_round_word(user_id: str,data: Dict[str, str]) -> Tuple[Dict[str, st
         return response_object, 409
 
     #get previous round_word_association with same round_id
-    prev_round_word = RoundWords.query.filter_by(round_id=data['round_id']).order_by(RoundWords.created_at.desc()).first()
+    prev_round_word = RoundWords.query.filter_by(round_id=data['round_id'],user_id=user_id).order_by(RoundWords.created_at.desc()).first()
     guess_number = 1
     if prev_round_word:
         if prev_round_word.word == guessed_word:
@@ -62,7 +62,7 @@ def save_new_round_word(user_id: str,data: Dict[str, str]) -> Tuple[Dict[str, st
     is_correct = False
     if distance == 0:
         is_correct = True
-        end_game_round(data['round_id'],GameRoundStatus.completed.value,user_id, guess_number)
+        end_game_round(data['round_id'],GameRoundStatus.completed.value, user_id=user_id , guess_number=guess_number)
 
     new_round_word= RoundWords(
         word_id = str(uuid.uuid4()),
@@ -77,8 +77,8 @@ def save_new_round_word(user_id: str,data: Dict[str, str]) -> Tuple[Dict[str, st
     save_changes(new_round_word)
     return  {
         'status': 'success',
-        'message': 'Game successfully created.',
-        'game_round': new_round_word.to_json()
+        'message': 'Word added successfully.',
+        'round_word': new_round_word.to_json()
     }
 
 def get_all_round_words(round_id: str):

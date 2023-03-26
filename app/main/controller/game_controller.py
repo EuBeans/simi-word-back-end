@@ -1,18 +1,15 @@
 from asyncio.log import logger
-import io
-import json
-import threading
+
 from time import sleep
 from flask import request, current_app, Flask
 from flask_restx import Resource
-from app.main.MachineLearning.model import load_model
-from app.main.util.decorator import token_required, socket_token_required
+from app.main.util.decorator import token_required
 from app.main.workers import modelDownloaderWorker
 from ..util.dto import GameDto
 from ..service.game_service import save_new_game, get_all_games, get_a_game, end_game, get_a_game_by_multiplayer_code
 from ..service.game_round_service import save_new_game_round
 from ..service.round_word_service import save_new_round_word
-from ..service.game_score_service import save_new_game_score
+from ..service.game_score_service import get_a_game_score, save_new_game_score
 from ..service.auth_helper import Auth
 from typing import Dict, Tuple
 from ..socketio import socketio
@@ -270,7 +267,7 @@ def start_new_round(data):
         emit('server_response', response, broadcast=True)
         
 #guess the word
-@socketio.on('guess_word', namespace='/game')
+@socketio.on('guess_round_word', namespace='/game')
 def guess_word(data):
     """
     Guess the word
@@ -286,32 +283,41 @@ def guess_word(data):
             status: 'success' or 'fail',
             message: 'Word guessed successfully' or 'Failed to guess word',
             data: {
-                round: WordModel
+                round_id: string,
+                word: string
             }
         }
     """
     #check if user is in the room
-    if not is_in_room(data['multiplayer_code']):
-        response = SocketResponse('error', 'You are not in the room', None).toJSON()
-        emit('server_response', response, broadcast=True)
-        return
-
     user, status = Auth.get_logged_in_user_socket(data['Authorization'])
     id = user.get('data').get('user_id')
     if not id:
         emit('disconnect', {'data': 'Disconnected'}, broadcast=True)
-    
-    
-    
-    
 
-def is_in_room(room):
-    if room in rooms():
+    if(not is_in_room(data['game_id'],id)):
+        response = SocketResponse('error', 'You are not in this room', None).toJSON()
+        emit('server_response', response, broadcast=True)
+        return
+
+    #guess the word
+    round_word = save_new_round_word(user_id=id, data=data)
+
+    if round_word:
+        #send the game to the client
+        response = SocketResponse('success', 'Word guessed successfully', round_word["round_word"]).toJSON()
+        emit('server_response', response, broadcast=True)
+ 
+def is_in_room(game_id,user_id):
+
+    score = get_a_game_score(user_id=user_id,game_id=game_id)
+    if score:
         return True
     else:
         return False
+
 def is_admin(game_id,user_id):
     #check if the user is is linked to the current game 
+
     game = get_a_game(game_id)
     #check if the user is the game creator
     if game['game']['user_id'] == user_id:

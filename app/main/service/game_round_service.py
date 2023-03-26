@@ -3,7 +3,7 @@ import datetime
 from app.main import db
 from app.main.model.game_round import GameRound, GameRoundStatus
 from app.main.service.game_service import get_a_game, end_game, update_score
-from app.main.service.game_score_service import update_game_score, get_a_game_score
+from app.main.service.game_score_service import update_game_score
 from typing import Dict, Tuple
 from app.main.MachineLearning.model import get_word_from_theme, get_similar_word_list
 from app.main.model.game import GameMode
@@ -95,7 +95,8 @@ def end_game_round(round_id, status = GameRoundStatus.completed.value, user_id =
         game = get_a_game(game_round.game_id)
 
         #check game mode 
-        if game['game_mode'] == GameMode.multiplayer and user_id:
+        print("FIRST",game['game_mode'] == GameMode.multiplayer and user_id, user_id, game['game_mode'] , GameMode.multiplayer)
+        if game['game_mode'] == GameMode.multiplayer.value and user_id:
             #update the score in the game Score table
             score = calculate_score(game_round, guess_number)
             update_game_score(user_id, game_round.game_id,score)
