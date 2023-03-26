@@ -1,3 +1,6 @@
+from asyncio.log import logger
+import io
+import json
 import threading
 from time import sleep
 from flask import request, current_app, Flask
@@ -6,11 +9,15 @@ from app.main.MachineLearning.model import load_model
 from app.main.util.decorator import token_required, socket_token_required
 from app.main.workers import modelDownloaderWorker
 from ..util.dto import GameDto
-from ..service.game_service import save_new_game, get_all_games, get_a_game, end_game
+from ..service.game_service import save_new_game, get_all_games, get_a_game, end_game, get_a_game_by_multiplayer_code
+from ..service.game_round_service import save_new_game_round
+from ..service.round_word_service import save_new_round_word
+from ..service.game_score_service import save_new_game_score
 from ..service.auth_helper import Auth
 from typing import Dict, Tuple
 from ..socketio import socketio
-from flask_socketio import emit, join_room, leave_room
+from flask_socketio import emit, join_room, leave_room, rooms
+
 
 thread = None
 
@@ -94,20 +101,221 @@ class UpdateModel(Resource):
                     'message': 'Model has been updated successfully!'
                 }
 
-        
+
+
+#object response for socket messages 
+class SocketResponse:
+    def __init__(self, status, message, data):
+        self.status = status
+        self.message = message
+        self.data = data
+    
+    #convert to json
+    def toJSON(self):
+        return {
+            'status': self.status,
+            'message': self.message,
+            'data': self.data
+        }
+
 @socketio.on('connect', namespace='/game')
-@socket_token_required
-def test_connect(auth_token):
-    #only connect if the user is logged in
+def connect_to_socket( auth):
+    user, status = Auth.get_logged_in_user_socket(auth['Authorization'])
+    id = user.get('data').get('user_id')
+    if not id:
+        emit('disconnect', {'data': 'Disconnected'}, broadcast=True)
     print('Client connected to socketio')
-    print(auth_token)
-    #user, status = Auth.get_logged_in_user_socket(auth_token)
-
-    emit('my response', {'data': 'Connected'})
-
-
-    print('Client connected to socketio')
+    response = SocketResponse('success', 'Connected to socketio', None).toJSON()
+    emit('server_response', response, broadcast=True)
 
 @socketio.on('disconnect')
-def test_disconnect():
-    print('Client disconnected')
+def disconnect_from_socket():
+    emit('disconnect', {'data': 'Disconnected'}, broadcast=True)
+    print('User disconnected')
+
+@socketio.on('creator_disconnect', namespace='/game')
+def creator_disconnect(data):
+    """
+    Creator disconnects from the game
+    data = {
+        Authorization: token,
+        }
+    """
+    user, status = Auth.get_logged_in_user_socket(data['Authorization'])
+    id = user.get('data').get('user_id')
+    if not id:
+        emit('disconnect', {'data': 'Disconnected'}, broadcast=True)
+    
+    #get the game
+    games = get_all_games(id)
+    print("user", user)
+    for game in games:
+        print(game)
+        if game['user_id'] == id:
+            #delete the game
+            end_game(game['game_id'])
+            emit('disconnect', {'data': 'Disconnected'}, broadcast=True)
+
+@socketio.on('create_multiplayer_game', namespace='/game')
+def create_multiplayer_game(data):
+    """
+    Create a multiplayer game
+    data = {
+        Authorization: token,
+        gameData: {
+            GameModel
+        }
+    emits a server_response event:
+        {
+        status: 'success' or 'fail',
+        message: 'Game created successfully' or 'Failed to create game',
+        data: {
+            GameModel
+        }
+    """
+    user, status = Auth.get_logged_in_user_socket(data['Authorization'])
+    id = user.get('data').get('user_id')
+    if not id:
+        emit('disconnect', {'data': 'Disconnected'}, broadcast=True)
+
+
+    #create a new game 
+    game = save_new_game(user_id=id, data=data['gameData'], session_id=request.sid)
+    if game:
+        #join the room
+        join_room(game['game']["multiplayer_code"])
+        game_score = save_new_game_score(user_id=id, game_id=game['game']['game_id'])
+
+        #send the game to the client
+        returnObj = {
+            'game': game['game'],
+            'game_score': game_score,
+            'user': user.get('data').get('username')
+        }
+        response = SocketResponse('success', 'Game created successfully', returnObj).toJSON()
+        emit('server_response', response, broadcast=True)
+
+
+@socketio.on('join_multiplayer_game', namespace='/game')
+def join_multiplayer_game(data):
+    """
+    Join a multiplayer game
+    data = {
+        Authorization: token,
+        multiplayer_code: string
+        emits a server_response event:
+        {
+            status: 'success' or 'fail',
+            message: 'Game joined successfully' or 'Failed to join game',
+            data: {
+                game: GameModel,
+                user: UserModel
+            }
+        }
+    """
+    user, status = Auth.get_logged_in_user_socket(data['Authorization'])
+    id = user.get('data').get('user_id')
+    if not id:
+        emit('disconnect', {'data': 'Disconnected'}, broadcast=True)
+    #get the game
+    game = get_a_game_by_multiplayer_code(data['multiplayer_code'])
+    print("game", game)
+    if game:
+        #join the room
+        join_room(game["multiplayer_code"])
+
+        game_score = save_new_game_score(game_id=game['game_id'], user_id=id)
+
+        #send the game to the client
+        returnObj = {
+            'game': game,
+            'game_score': game_score,
+            'user': user.get('data').get('username')
+        }
+        response = SocketResponse('success', 'Game joined successfully', returnObj).toJSON()
+        emit('server_response', response, broadcast=True)
+    else:
+        response = SocketResponse('fail', 'Failed to join game', None).toJSON()
+        emit('server_response', response, broadcast=True)
+
+#admin will now start the game
+@socketio.on('start_new_round', namespace='/game')
+def start_new_round(data):
+    """
+    Start a new round
+    data = {
+        Authorization: token,
+        game_id: string
+    }
+    emits a server_response event:
+        {
+            status: 'success' or 'fail',
+            message: 'Game started successfully' or 'Failed to start game',
+            data: {
+                round: RoundModel
+                }
+        }
+    """
+    user, status = Auth.get_logged_in_user_socket(data['Authorization'])
+    id = user.get('data').get('user_id')
+    if not id:
+        emit('disconnect', {'data': 'Disconnected'}, broadcast=True)
+    round = save_new_game_round(data)
+    if round:
+        #send the game to the client
+        response = SocketResponse('success', 'Game started successfully', round).toJSON()
+        emit('server_response', response, broadcast=True)
+    else:
+        response = SocketResponse('error', 'Round could not be started, its either finished or idk', None).toJSON()
+        emit('server_response', response, broadcast=True)
+        
+#guess the word
+@socketio.on('guess_word', namespace='/game')
+def guess_word(data):
+    """
+    Guess the word
+    data = {
+        Authorization: token,
+        game_id: string,
+        round_id: string,
+        word: string
+        }
+        
+    emits a server_response event:
+        {
+            status: 'success' or 'fail',
+            message: 'Word guessed successfully' or 'Failed to guess word',
+            data: {
+                round: WordModel
+            }
+        }
+    """
+    #check if user is in the room
+    if not is_in_room(data['multiplayer_code']):
+        response = SocketResponse('error', 'You are not in the room', None).toJSON()
+        emit('server_response', response, broadcast=True)
+        return
+
+    user, status = Auth.get_logged_in_user_socket(data['Authorization'])
+    id = user.get('data').get('user_id')
+    if not id:
+        emit('disconnect', {'data': 'Disconnected'}, broadcast=True)
+    
+    
+    
+    
+
+def is_in_room(room):
+    if room in rooms():
+        return True
+    else:
+        return False
+def is_admin(game_id,user_id):
+    #check if the user is is linked to the current game 
+    game = get_a_game(game_id)
+    #check if the user is the game creator
+    if game['game']['user_id'] == user_id:
+        return True
+    else:
+        return False
+

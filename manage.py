@@ -1,3 +1,4 @@
+import logging
 import os
 from time import sleep
 import unittest
@@ -19,7 +20,7 @@ migrate = Migrate(app, db)
 manager.add_command('db', MigrateCommand)
 
 # associate socketio event handlers with socketio instance, 
-socketio.init_app(app, cors_allowed_origins='*')
+socketio.init_app(app, async_mode="eventlet", engineio_logger=True,log_level=logging.DEBUG)
 
 manager = Manager(app)
 migrate = Migrate(app, db)

@@ -11,7 +11,6 @@ from typing import Dict, Tuple
 GUESS_LIMIT = 100
 def save_new_round_word(user_id: str,data: Dict[str, str]) -> Tuple[Dict[str, str], int]:
     """Creates a new round_word_association """
-    print(data)
     round = get_a_game_round(data['round_id'])
     guessed_word = data['word']
 
@@ -63,7 +62,7 @@ def save_new_round_word(user_id: str,data: Dict[str, str]) -> Tuple[Dict[str, st
     is_correct = False
     if distance == 0:
         is_correct = True
-        end_game_round(data['round_id'])
+        end_game_round(data['round_id'],GameRoundStatus.completed.value,user_id, guess_number)
 
     new_round_word= RoundWords(
         word_id = str(uuid.uuid4()),

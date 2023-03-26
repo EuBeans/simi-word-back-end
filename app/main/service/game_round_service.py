@@ -3,9 +3,10 @@ import datetime
 from app.main import db
 from app.main.model.game_round import GameRound, GameRoundStatus
 from app.main.service.game_service import get_a_game, end_game, update_score
+from app.main.service.game_score_service import update_game_score, get_a_game_score
 from typing import Dict, Tuple
 from app.main.MachineLearning.model import get_word_from_theme, get_similar_word_list
-
+from app.main.model.game import GameMode
 def save_new_game_round(data: Dict[str, str]) -> Tuple[Dict[str, str], int]:
     """Creates a new Game Round"""
     game = get_a_game(data['game_id'])
@@ -75,7 +76,7 @@ def update_number_guesses(round_id):
         }
         return response_object, 200
 
-def end_game_round(round_id, status = GameRoundStatus.completed.value):
+def end_game_round(round_id, status = GameRoundStatus.completed.value, user_id = None, guess_number = 0):
     """End game round with status"""
     game_round = GameRound.query.filter_by(round_id=round_id).first()
     if not game_round:
@@ -85,13 +86,21 @@ def end_game_round(round_id, status = GameRoundStatus.completed.value):
         }
         return response_object, 409
     else:
-
         game_round.status = status
         game_round.end_time = datetime.datetime.utcnow()
         game_round.updated_at = datetime.datetime.utcnow()
         game_round.round_score = calculate_score(game_round)
+        
+        
+        game = get_a_game(game_round.game_id)
 
-        update_score(game_round.game_id, game_round.round_score)
+        #check game mode 
+        if game['game_mode'] == GameMode.multiplayer and user_id:
+            #update the score in the game Score table
+            score = calculate_score(game_round, guess_number)
+            update_game_score(user_id, game_round.game_id,score)
+        else:
+            update_score(game_round.game_id, game_round.round_score)
 
         game = get_a_game(game_round.game_id)
         if(game_round.round_number == game['max_round_number']):
@@ -103,11 +112,9 @@ def end_game_round(round_id, status = GameRoundStatus.completed.value):
             'message': 'Game successfully updated.',
             'game_round': game_round.to_json()
         }
-
-
         return response_object, 200
 
-def calculate_score(game_round):
+def calculate_score(game_round, guess_number = None):
     """Calculate score for game round"""
     if not game_round:
         response_object = {
@@ -118,7 +125,10 @@ def calculate_score(game_round):
     else:
         score = 0
         if game_round.status == GameRoundStatus.completed.value:
-            score = 100 - game_round.number_of_guesses
+            if(guess_number):
+                score = 100 - guess_number
+            else:
+                core = 100 - game_round.number_of_guesses
         return score
 
 def get_a_game_round(round_id: str) -> GameRound:

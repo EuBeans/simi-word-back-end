@@ -85,6 +85,23 @@ class RoundWordDto:
         'round_id': fields.String(required=True, description='round word association game round id'),
     })
 
+class GameScoreDto:
+    api = Namespace('game_score', description='game score related operations')
+    game_score = api.model('game_score', {
+        'score_id': fields.String(required=True, description='game score id'),
+        'game_id': fields.String(required=True, description='game score game id'),
+        'user_id': fields.String(description='game score Identifier'),
+        'score': fields.Integer(required=True, description='game score score'),
+        'created_at': fields.String(required=True, description='game score created at'),
+        'updated_at': fields.String(required=True, description='game score updated at'),
+    })
+    game_score_create = api.model('game_score_create', {
+        'game_id': fields.String(required=True, description='game score game id'),
+    })
+    game_score_update = api.model('game_score_update', {
+        'game_id': fields.String(required=True, description='game score update game score id'),
+        'score': fields.Integer(required=True, description='game score update score'),
+    })
 
 class AuthDto:
     api = Namespace('auth', description='authentication related operations')

@@ -1,3 +1,4 @@
+from asyncio.log import logger
 from app.main.model.user import User
 from ..service.blacklist_service import save_token
 from typing import Dict, Tuple
@@ -92,12 +93,14 @@ class Auth:
     def get_logged_in_user_socket(auth_token):
         if auth_token:
             resp = User.decode_auth_token(auth_token)
+
             if not isinstance(resp, str):
                 user = User.query.filter_by(id=resp).first()
                 response_object = {
                     'status': 'success',
                     'data': {
                         'user_id': user.public_id,
+                        'username': user.username,
                         'email': user.email,
                         'admin': user.admin,
                         'registered_on': str(user.registered_on)

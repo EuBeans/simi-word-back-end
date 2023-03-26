@@ -62,8 +62,8 @@ class Game(db.Model):
     game_status = db.Column(Enum(GameStatus,create_constraint=True), nullable=False) 
     max_round_number = db.Column(db.Integer, nullable=False)
     multiplayer_code = db.Column(db.String(100), nullable=True)
+    gameSessionId = db.Column(db.String(100), nullable=True)
 
-    
 
 
 
