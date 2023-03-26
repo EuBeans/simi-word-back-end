@@ -1,1 +1,1 @@
-web: gunicorn manage:app --preload --workers=1 --threads=2 
+web: gunicorn manage:app --preload --worker-class eventlet -w 1
