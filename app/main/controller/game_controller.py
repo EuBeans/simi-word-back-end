@@ -220,9 +220,12 @@ def join_multiplayer_game(data):
     if game:
         #join the room
         join_room(game["multiplayer_code"])
+        
 
-        game_score = save_new_game_score(game_id=game['game_id'], user_id=id)
-
+        if(not is_in_score_board(game['game_id'], id)):
+            game_score = save_new_game_score(game_id=game['game_id'], user_id=id)
+        else:
+            game_score = get_a_game_score(id, game['game_id'])
         #send the game to the client
         returnObj = {
             'game': game,
@@ -294,7 +297,7 @@ def guess_word(data):
     if not id:
         emit('disconnect', {'data': 'Disconnected'}, broadcast=True)
 
-    if(not is_in_room(data['game_id'],id)):
+    if(not is_in_score_board(data['game_id'],id)):
         response = SocketResponse('error', 'You are not in this room', None).toJSON()
         emit('server_response', response, broadcast=True)
         return
@@ -307,7 +310,7 @@ def guess_word(data):
         response = SocketResponse('success', 'Word guessed successfully', round_word["round_word"]).toJSON()
         emit('server_response', response, broadcast=True)
  
-def is_in_room(game_id,user_id):
+def is_in_score_board(game_id,user_id):
 
     score = get_a_game_score(user_id=user_id,game_id=game_id)
     if score:
