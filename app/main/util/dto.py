@@ -20,6 +20,7 @@ class GameDto:
         'end_time': fields.String(required=True, description='game end time'),
         'created_at': fields.String(required=True, description='game created at'),
         'game_mode': fields.String(required=True, description='game game mode'),
+        'game_status': fields.String(required=True, description='game game status'),
         'game_level': fields.String(required=True, description='game game level'),
         'theme': fields.String(required=True, description='game theme'),
         'max_round_number': fields.Integer(required=True, description='game max round number'),
