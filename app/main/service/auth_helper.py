@@ -88,6 +88,19 @@ class Auth:
                 'message': 'Provide a valid auth token.'
             }
             return response_object, 401
+        
+
+    #validate token
+    @staticmethod
+    def validate_token(auth_token):
+        if auth_token:
+            resp = User.decode_auth_token(auth_token)
+            if not isinstance(resp, str):
+                return {'status': 'success', 'message': 'Valid token'}
+            else:
+                return {'status': 'fail', 'message': resp}
+        else:
+            return {'status': 'fail', 'message': 'Provide a valid auth token.'}
 
     @staticmethod
     def get_logged_in_user_socket(auth_token):

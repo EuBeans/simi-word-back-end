@@ -32,4 +32,15 @@ class LogoutAPI(Resource):
         # get auth token
         auth_header = request.headers.get('Authorization')
         return Auth.logout_user(data=auth_header)
+    
+@api.route('/validate')
+class ValidateAPI(Resource):
+    """
+    Validate Resource
+    """
+    @api.doc('validate a token')
+    def post(self) -> Tuple[Dict[str, str], int]:
+        # get auth token
+        auth_header = request.headers.get('Authorization')
+        return Auth.validate_token(auth_token=auth_header)
 
