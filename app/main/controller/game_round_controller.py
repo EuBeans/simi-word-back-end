@@ -44,21 +44,6 @@ class GameRound(Resource):
         return end_game_round(round_id = data['game_round_id'], status = data['status'])
 
 
-
-@api.route('/<round_id>')
-@api.param('round_id', 'The Game Round identifier')
-@api.response(404, 'Game Round not found.')
-class GameRound(Resource):
-    @api.doc('get a game round')
-    @token_required
-    @api.marshal_with(_game_round)
-    def get(self, round_id):
-        """get a round given its identifier"""
-        game = get_a_game_round(round_id)
-        if not game:
-            api.abort(404)
-        else:
-            return game
     
 
 
