@@ -79,7 +79,7 @@ def save_new_round_word(user_id: str,data: Dict[str, str]) -> Tuple[Dict[str, st
         'status': 'success',
         'message': 'Word added successfully.',
         'round_word': new_round_word.to_json()
-    }
+    }, 201
 
 def get_all_round_words(round_id: str):
     #for each .to_json() in the list, it will call the to_json() method in the model

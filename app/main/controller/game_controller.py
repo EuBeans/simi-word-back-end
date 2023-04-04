@@ -120,10 +120,10 @@ def connect_to_socket( auth):
     user, status = Auth.get_logged_in_user_socket(auth['Authorization'])
     id = user.get('data').get('user_id')
     if not id:
-        emit('disconnect', {'data': 'Disconnected'}, broadcast=True)
+        emit('disconnect', {'data': 'Disconnected'})
     print('Client connected to socketio')
     response = SocketResponse('success', 'Connected to socketio', None).toJSON()
-    emit('server_response', response, broadcast=True)
+    emit('server_response', response)
 
 @socketio.on('disconnect')
 def disconnect_from_socket():
@@ -261,12 +261,12 @@ def start_new_round(data):
     if not id:
         emit('disconnect', {'data': 'Disconnected'}, broadcast=True)
     round = save_new_game_round(data)
-    if round:
+    if round[0]['status'] == 'success':
         #send the game to the client
-        response = SocketResponse('success', 'Game started successfully', round).toJSON()
+        response = SocketResponse('success', round[0]['message'], round).toJSON()
         emit('server_response', response, broadcast=True)
     else:
-        response = SocketResponse('error', 'Round could not be started, its either finished or idk', None).toJSON()
+        response = SocketResponse('error',  round[0]['message'], None).toJSON()
         emit('server_response', response, broadcast=True)
         
 #guess the word
@@ -305,9 +305,13 @@ def guess_word(data):
     #guess the word
     round_word = save_new_round_word(user_id=id, data=data)
 
-    if round_word:
+    if(round_word[0]['status'] == 'fail'):
+        response = SocketResponse('error', round_word[0]['message'], None).toJSON()
+        emit('server_response', response, broadcast=True)
+        return
+    else:
         #send the game to the client
-        response = SocketResponse('success', 'Word guessed successfully', round_word["round_word"]).toJSON()
+        response = SocketResponse('success',  round_word[0]['message'], round_word[0]["round_word"]).toJSON()
         emit('server_response', response, broadcast=True)
  
 def is_in_score_board(game_id,user_id):

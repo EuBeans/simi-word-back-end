@@ -50,13 +50,11 @@ def save_new_game(user_id:str, data: Dict[str, str], session_id:str = None) -> T
 
         save_changes(new_game)
 
-
-
         return  {
             'status': 'success',
             'message': 'Game successfully created.',
             'game': new_game.to_json(),
-        }  
+        }, 201  
     except Exception as e:
         print(e)
         response_object = {
@@ -91,7 +89,7 @@ def end_game(game_id):
             'status': 'fail',
             'message': 'Game does not exist.'
         }
-        return response_object, 404
+        return response_object
     
     else:
         game.game_status = GameStatus.completed
@@ -106,7 +104,7 @@ def update_score(game_id, score):
             'status': 'fail',
             'message': 'Game does not exist.'
         }
-        return response_object, 404
+        return response_object
     else:
         game.score = game.score + score
         db.session.commit()

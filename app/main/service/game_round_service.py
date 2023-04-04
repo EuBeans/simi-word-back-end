@@ -52,9 +52,9 @@ def save_new_game_round(data: Dict[str, str]) -> Tuple[Dict[str, str], int]:
 
     return  {
         'status': 'success',
-        'message': 'Game successfully created.',
+        'message': 'Game Round successfully created.',
         'game_round': new_game_round.to_json()
-    }  
+    } , 201
 
 def update_number_guesses(round_id):
     """Update number of guesses for game round"""
