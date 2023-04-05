@@ -21,6 +21,13 @@ def save_new_round_word(user_id: str,data: Dict[str, str]) -> Tuple[Dict[str, st
         }
         return response_object, 202
 
+    if(guess_word == ""):
+        response_object = {
+            'status': 'fail',
+            'message': 'Word cannot be empty.',
+        }
+        return response_object, 202
+
     if(not check_word_in_model(guessed_word)):
         response_object = {
             'status': 'fail',
@@ -34,6 +41,16 @@ def save_new_round_word(user_id: str,data: Dict[str, str]) -> Tuple[Dict[str, st
             'message': 'Game Round is not in progress.',
         }
         return response_object, 202
+    
+    # check to see if word has been used in this round
+    all_words = RoundWords.query.filter_by(round_id=data['round_id'],user_id=user_id).all()
+    for word in all_words:
+        if word.word == guessed_word:
+            response_object = {
+                'status': 'fail',
+                'message': 'Word already used.',
+            }
+            return response_object, 202
 
     #get previous round_word_association with same round_id
     prev_round_word = RoundWords.query.filter_by(round_id=data['round_id'],user_id=user_id).order_by(RoundWords.created_at.desc()).first()
