@@ -19,21 +19,21 @@ def save_new_round_word(user_id: str,data: Dict[str, str]) -> Tuple[Dict[str, st
             'status': 'fail',
             'message': 'Game Round does not exist.',
         }
-        return response_object, 201
+        return response_object, 202
 
     if(not check_word_in_model(guessed_word)):
         response_object = {
             'status': 'fail',
             'message': 'Word not in model.',
         }
-        return response_object, 201
+        return response_object, 202
 
     if(round['status'] != GameRoundStatus.in_progress.value):
         response_object = {
             'status': 'fail',
             'message': 'Game Round is not in progress.',
         }
-        return response_object, 201
+        return response_object, 202
 
     #get previous round_word_association with same round_id
     prev_round_word = RoundWords.query.filter_by(round_id=data['round_id'],user_id=user_id).order_by(RoundWords.created_at.desc()).first()
@@ -44,7 +44,7 @@ def save_new_round_word(user_id: str,data: Dict[str, str]) -> Tuple[Dict[str, st
                 'status': 'fail',
                 'message': 'Word already used.',
             }
-            return response_object, 201
+            return response_object, 202
         guess_number = prev_round_word.guess_number + 1
 
         if(guess_number > GUESS_LIMIT):
@@ -52,7 +52,7 @@ def save_new_round_word(user_id: str,data: Dict[str, str]) -> Tuple[Dict[str, st
                 'status': 'fail',
                 'message': 'Guess limit reached.',
             }
-            return response_object, 201
+            return response_object, 202
     
 
     update_number_guesses(data['round_id'])
