@@ -109,9 +109,6 @@ def end_game_round(round_id, status = GameRoundStatus.completed.value, user_id =
         game = get_a_game(game_round.game_id)
         if(game_round.round_number == game['max_round_number']):
             end_game(game_round.game_id)
-        else:
-            #start new round
-            save_new_game_round({'game_id': game_round.game_id})
 
         db.session.commit()
         response_object = {
