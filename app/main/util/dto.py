@@ -42,6 +42,7 @@ class GameDto:
 class GameRoundDto:
     api = Namespace('game_round', description='game round related operations')
     game_round = api.model('game_round', {
+        'round_id': fields.String(description='game round Identifier'),
         'game_id': fields.String(required=True, description='game round game id'),
         'round_number': fields.Integer(required=True, description='game round number'),
         'round_word': fields.String(required=True, description='game round word'),
