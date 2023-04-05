@@ -91,6 +91,7 @@ def end_game_round(round_id, status = GameRoundStatus.completed.value, user_id =
         game_round.updated_at = datetime.datetime.utcnow()
         game_round.round_score = calculate_score(game_round)
         
+        print("SECOND", game_round.round_score)
         
         game = get_a_game(game_round.game_id)
 
@@ -98,9 +99,11 @@ def end_game_round(round_id, status = GameRoundStatus.completed.value, user_id =
         print("FIRST",game['game_mode'] == GameMode.multiplayer and user_id, user_id, game['game_mode'] , GameMode.multiplayer)
         if game['game_mode'] == GameMode.multiplayer.value and user_id:
             #update the score in the game Score table
+
             score = calculate_score(game_round, guess_number)
             update_game_score(user_id, game_round.game_id,score)
         else:
+
             update_score(game_round.game_id, game_round.round_score)
 
         game = get_a_game(game_round.game_id)
@@ -129,7 +132,7 @@ def calculate_score(game_round, guess_number = None):
             if(guess_number):
                 score = 100 - guess_number
             else:
-                core = 100 - game_round.number_of_guesses
+                score = 100 - game_round.number_of_guesses
         return score
 
 def get_a_game_round(round_id: str) -> GameRound:
