@@ -12,7 +12,7 @@ _round_word_create = RoundWordDto.round_word_create
 RoundWordDto
 @api.route('/<round_id>')
 @api.param('round_id', 'The Game Round identifier')
-class GameRoundList(Resource):
+class RoundWordList(Resource):
     @api.doc('list_of_words')
     @token_required 
     @api.marshal_list_with(_round_word, envelope='data')
@@ -21,7 +21,7 @@ class GameRoundList(Resource):
         return get_all_round_words(round_id)
 
 @api.route('/')
-class GameRound(Resource):
+class RoundWord(Resource):
     @api.expect(_round_word_create, validate=True)
     @token_required
     @api.response(201, 'Word successfully created.')
