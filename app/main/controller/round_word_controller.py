@@ -35,20 +35,5 @@ class GameRound(Resource):
         data = request.json
         return save_new_round_word(user_id=user_id,data=data)
 
-@api.route('/<word_id>')
-@api.param('word_id', 'The Word identifier')
-@api.response(404, 'Word not found.')
-class GameRound(Resource):
-    @api.doc('get a Word')
-    @token_required
-    @api.marshal_with(_round_word)
-    def get(self, word_id):
-        """get a round given its identifier"""
-        game = get_a_round_word(word_id)
-        if not game:
-            api.abort(404)
-        else:
-            return game
-
 
 

@@ -8,7 +8,7 @@ from app.main.MachineLearning.model import guess_word, check_word_in_model
 from app.main.service.game_round_service import update_number_guesses,end_game_round
 from typing import Dict, Tuple
 
-GUESS_LIMIT = 100
+GUESS_LIMIT = 200
 def save_new_round_word(user_id: str,data: Dict[str, str]) -> Tuple[Dict[str, str], int]:
     """Creates a new round_word_association """
     round = get_a_game_round(data['round_id'])

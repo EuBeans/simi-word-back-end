@@ -8,6 +8,7 @@ from app.main.model.game import Game
 from typing import Dict, Tuple
 from ..model.game import Theme, GameMode, GameLevel, GameStatus
 
+
 def save_new_game(user_id:str, data: Dict[str, str], session_id:str = None) -> Tuple[Dict[str, str], int]:
 
     try:
