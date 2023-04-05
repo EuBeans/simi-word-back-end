@@ -21,7 +21,7 @@ def save_new_round_word(user_id: str,data: Dict[str, str]) -> Tuple[Dict[str, st
         }
         return response_object, 202
 
-    if(guess_word == ""):
+    if(guessed_word == ""):
         response_object = {
             'status': 'fail',
             'message': 'Word cannot be empty.',
