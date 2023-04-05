@@ -40,7 +40,7 @@ class GameRound(db.Model):
 
     def to_json(self):
         return {
-            'id': self.round_id,
+            'round_id': self.round_id,
             'game_id': self.game_id,
             'round_number': self.round_number,
             'round_word': self.round_word,
