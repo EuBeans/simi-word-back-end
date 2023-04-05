@@ -19,21 +19,21 @@ def save_new_round_word(user_id: str,data: Dict[str, str]) -> Tuple[Dict[str, st
             'status': 'fail',
             'message': 'Game Round does not exist.',
         }
-        return response_object, 409
+        return response_object
 
     if(not check_word_in_model(guessed_word)):
         response_object = {
             'status': 'fail',
-            'message': 'Word not in model.',
+            'message': 'Word not valid.',
         }
-        return response_object, 409
+        return response_object
 
     if(round['status'] != GameRoundStatus.in_progress.value):
         response_object = {
             'status': 'fail',
             'message': 'Game Round is not in progress.',
         }
-        return response_object, 409
+        return response_object
 
     #get previous round_word_association with same round_id
     prev_round_word = RoundWords.query.filter_by(round_id=data['round_id'],user_id=user_id).order_by(RoundWords.created_at.desc()).first()
@@ -44,7 +44,7 @@ def save_new_round_word(user_id: str,data: Dict[str, str]) -> Tuple[Dict[str, st
                 'status': 'fail',
                 'message': 'Word already used.',
             }
-            return response_object, 409
+            return response_object
         guess_number = prev_round_word.guess_number + 1
 
         if(guess_number > GUESS_LIMIT):
@@ -52,7 +52,7 @@ def save_new_round_word(user_id: str,data: Dict[str, str]) -> Tuple[Dict[str, st
                 'status': 'fail',
                 'message': 'Guess limit reached.',
             }
-            return response_object, 409
+            return response_object
     
 
     update_number_guesses(data['round_id'])
@@ -79,7 +79,7 @@ def save_new_round_word(user_id: str,data: Dict[str, str]) -> Tuple[Dict[str, st
         'status': 'success',
         'message': 'Word added successfully.',
         'round_word': new_round_word.to_json()
-    }, 201
+    }
 
 def get_all_round_words(round_id: str):
     #for each .to_json() in the list, it will call the to_json() method in the model
