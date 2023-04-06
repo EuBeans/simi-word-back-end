@@ -29,7 +29,7 @@ def save_new_game_round(data: Dict[str, str]) -> Tuple[Dict[str, str], int]:
                 'status': 'fail',
                 'message': 'Game has reached max round number.',
             }
-        if(prev_game_round.status == GameRoundStatus.in_progress.value):
+        if(prev_game_round.status.value == GameRoundStatus.in_progress.value):
             end_game_round(prev_game_round.round_id)
 
         if response_object:
@@ -86,40 +86,38 @@ def end_game_round(round_id, status = GameRoundStatus.completed.value, user_id =
         }
         return response_object, 409
     else:
-        if(status == GameRoundStatus.timed_out.value):
-            game_round.status = GameRoundStatus.timed_out
-        elif status == GameRoundStatus.skipped.value:
-            game_round.status = GameRoundStatus.skipped
-        else:
-            game_round.status = GameRoundStatus.completed
+
+        
+        game_round.status = GameRoundStatus(status)
 
         game_round.end_time = datetime.datetime.utcnow()
         game_round.updated_at = datetime.datetime.utcnow()
         game_round.round_score = calculate_score(game_round)
-        
-        print(game_round.round_score)
+        db.session.commit()
+
         game = get_a_game(game_id  = game_round.game_id)
         
         if(status == GameRoundStatus.completed.value):
-            if game['game_mode'] == GameMode.multiplayer.value and user_id:
+            if game.game_mode.value == GameMode.multiplayer.value and user_id:
                 #update the score in the game Score table
                 score = calculate_score(game_round, guess_number)
                 update_game_score(user_id, game_round.game_id,score)
             else:
 
                 update_score(game_round.game_id, game_round.round_score)
-
+        new_game_round = None
         if(game_round.round_number == game.max_round_number):
             end_game(game_round.game_id)
         else:
             #start new round
-            save_new_game_round({'game_id': game_round.game_id})
+            new_game_round = save_new_game_round({'game_id': game_round.game_id})[0]['game_round']
 
-        db.session.commit()
+
         response_object = {
             'status': 'success',
             'message': 'Game successfully updated.',
-            'game_round': game_round.to_json()
+            'prev_game_round': game_round.to_json(),
+            'new_game_round': new_game_round
         }
         return response_object, 200
 
@@ -133,7 +131,7 @@ def calculate_score(game_round, guess_number = None):
         return response_object, 409
     else:
         score = 0
-        if game_round.status == GameRoundStatus.completed.value:
+        if game_round.status.value == GameRoundStatus.completed.value:
             if(guess_number):
                 score = 100 - guess_number
             else:

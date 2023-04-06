@@ -48,8 +48,8 @@ def save_new_game(user_id:str, data: Dict[str, str], session_id:str = None) -> T
             multiplayer_code = multiplayer_code,
             gameSessionId = gameSessionId
         )
-
         save_changes(new_game)
+        
 
         return  {
             'status': 'success',
