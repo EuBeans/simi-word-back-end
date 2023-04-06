@@ -6,7 +6,7 @@ from app.main.service.game_service import get_a_game, end_game, update_score
 from app.main.service.game_score_service import update_game_score
 from typing import Dict, Tuple
 from app.main.MachineLearning.model import get_word_from_theme, get_similar_word_list
-from app.main.model.game import GameMode
+from app.main.model.game import Game, GameMode
 def save_new_game_round(data: Dict[str, str]) -> Tuple[Dict[str, str], int]:
     """Creates a new Game Round"""
     game = get_a_game(data['game_id'])
@@ -22,20 +22,20 @@ def save_new_game_round(data: Dict[str, str]) -> Tuple[Dict[str, str], int]:
     round_number = 1
     response_object = None
     if prev_game_round:
-        if prev_game_round.round_number < game['max_round_number']:
+        if prev_game_round.round_number < game.max_round_number:
             round_number = prev_game_round.round_number + 1
-        elif  prev_game_round.round_number == game['max_round_number']:
+        elif  prev_game_round.round_number == game.max_round_number:
             response_object = {
                 'status': 'fail',
                 'message': 'Game has reached max round number.',
             }
-        if(prev_game_round.status.value == GameRoundStatus.in_progress.value):
+        if(prev_game_round.status == GameRoundStatus.in_progress.value):
             end_game_round(prev_game_round.round_id)
 
         if response_object:
             return response_object, 409
     
-    round_word = get_word_from_theme(game['theme'], game['game_level'])
+    round_word = get_word_from_theme(game.theme.value, game.game_level.value)
     new_game_round = GameRound(
         round_id = str(uuid.uuid4()),
         game_id= data['game_id'],
@@ -86,30 +86,30 @@ def end_game_round(round_id, status = GameRoundStatus.completed.value, user_id =
         }
         return response_object, 409
     else:
-        game_round.status = status
+        if(status == GameRoundStatus.timed_out.value):
+            game_round.status = GameRoundStatus.timed_out
+        elif status == GameRoundStatus.skipped.value:
+            game_round.status = GameRoundStatus.skipped
+        else:
+            game_round.status = GameRoundStatus.completed
+
         game_round.end_time = datetime.datetime.utcnow()
         game_round.updated_at = datetime.datetime.utcnow()
         game_round.round_score = calculate_score(game_round)
         
-        print("SECOND", game_round.round_score)
+        print(game_round.round_score)
+        game = get_a_game(game_id  = game_round.game_id)
         
-        game = get_a_game(game_round.game_id)
-
-        #check game mode 
-        print("FIRST",game['game_mode'] == GameMode.multiplayer and user_id, user_id, game['game_mode'] , GameMode.multiplayer)
-
         if(status == GameRoundStatus.completed.value):
             if game['game_mode'] == GameMode.multiplayer.value and user_id:
                 #update the score in the game Score table
-
                 score = calculate_score(game_round, guess_number)
                 update_game_score(user_id, game_round.game_id,score)
             else:
 
                 update_score(game_round.game_id, game_round.round_score)
 
-        game = get_a_game(game_round.game_id)
-        if(game_round.round_number == game['max_round_number']):
+        if(game_round.round_number == game.max_round_number):
             end_game(game_round.game_id)
         else:
             #start new round

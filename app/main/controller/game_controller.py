@@ -72,7 +72,7 @@ class Game(Resource):
     @api.marshal_with(_game)
     def get(self, game_id):
         """get a user given its identifier"""
-        game = get_a_game(game_id)
+        game = get_a_game(game_id).to_json()
         if not game:
             api.abort(404)
         else:

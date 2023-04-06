@@ -38,7 +38,7 @@ class GameRound(Resource):
     @token_required
     @api.response(201, 'Game Round successfully ended.')
     @api.doc('create a new game round')
-    def put(self) -> Tuple[Dict[str, str], int]:
+    def patch(self) -> Tuple[Dict[str, str], int]:
         """End game round with status """
         data = request.json
         return end_game_round(round_id = data['game_round_id'], status = data['status'])

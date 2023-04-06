@@ -70,8 +70,8 @@ def get_all_games(user_id: str):
     return [game.to_json() for game in Game.query.filter_by(user_id=user_id).all()]
 
 
-def get_a_game(game_id):
-    return Game.query.filter_by(game_id=game_id).first().to_json()
+def get_a_game(game_id: str) -> Game:
+    return Game.query.filter_by(game_id=game_id).first()
 
 def get_a_game_by_multiplayer_code(multiplayer_code):
     # check if game is in progress
