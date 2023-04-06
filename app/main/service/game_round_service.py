@@ -97,14 +97,16 @@ def end_game_round(round_id, status = GameRoundStatus.completed.value, user_id =
 
         #check game mode 
         print("FIRST",game['game_mode'] == GameMode.multiplayer and user_id, user_id, game['game_mode'] , GameMode.multiplayer)
-        if game['game_mode'] == GameMode.multiplayer.value and user_id:
-            #update the score in the game Score table
 
-            score = calculate_score(game_round, guess_number)
-            update_game_score(user_id, game_round.game_id,score)
-        else:
+        if(status == GameRoundStatus.completed.value):
+            if game['game_mode'] == GameMode.multiplayer.value and user_id:
+                #update the score in the game Score table
 
-            update_score(game_round.game_id, game_round.round_score)
+                score = calculate_score(game_round, guess_number)
+                update_game_score(user_id, game_round.game_id,score)
+            else:
+
+                update_score(game_round.game_id, game_round.round_score)
 
         game = get_a_game(game_round.game_id)
         if(game_round.round_number == game['max_round_number']):

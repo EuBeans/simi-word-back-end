@@ -50,13 +50,13 @@ def get_word_from_theme(theme: str, level: str):
         
         if(level == 'easy'):
             difficultyStart = 0
-            difficultyEnd = 40
-        elif(level == 'medium'):
-            difficultyStart = 41
             difficultyEnd = 100
-        elif(level == 'hard'):
+        elif(level == 'medium'):
             difficultyStart = 100
             difficultyEnd = 200
+        elif(level == 'hard'):
+            difficultyStart = 200
+            difficultyEnd = 400
 
         custom_word_set = get_similar_words(model, theme)
 
