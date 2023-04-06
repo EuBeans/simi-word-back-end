@@ -37,7 +37,7 @@ class GameRound(Resource):
     @api.expect(_game_round_update, validate=True)
     @token_required
     @api.response(201, 'Game Round successfully ended.')
-    @api.doc('create a new game round')
+    @api.doc('patch a new game round')
     def patch(self) -> Tuple[Dict[str, str], int]:
         """End game round with status """
         data = request.json
